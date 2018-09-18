@@ -1,0 +1,450 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "version" : "1.0.0",
+    "title" : "Parcel Logistics Service",
+    "contact" : {
+      "name" : "Maximilian Knor",
+      "url" : "http://blog.knor.net/"
+    }
+  },
+  "basePath" : "/api",
+  "consumes" : [ "application/json" ],
+  "produces" : [ "application/json" ],
+  "paths" : {
+    "/parcel" : {
+      "post" : {
+        "tags" : [ "parcel" ],
+        "summary" : "Submit a new parcel to the logistics service.\n",
+        "operationId" : "submitParcel",
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "newParcel",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/parcel"
+          },
+          "x-ms-summary" : "New parcel to submit"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successfully submitted the new parcel",
+            "schema" : {
+              "$ref" : "#/definitions/newParcelInfo"
+            }
+          },
+          "400" : {
+            "description" : "The operation failed due to an error.",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          }
+        },
+        "x-ms-summary" : "Submit new parcel"
+      }
+    },
+    "/parcel/{trackingId}" : {
+      "get" : {
+        "tags" : [ "parcel" ],
+        "summary" : "Find the latest tracking state of a parcel by its tracking ID.\n",
+        "operationId" : "trackParcel",
+        "parameters" : [ {
+          "name" : "trackingId",
+          "in" : "path",
+          "description" : "The tracking ID of the parcel.\nE.g. PYJRB4HZ6\n",
+          "required" : true,
+          "type" : "string",
+          "pattern" : "^[A-Z0-9]{9}$",
+          "x-ms-summary" : "Tracking ID"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Parcel exists, here's the tracking information.",
+            "schema" : {
+              "$ref" : "#/definitions/trackingInformation"
+            }
+          },
+          "400" : {
+            "description" : "The operation failed due to an error.",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          },
+          "404" : {
+            "description" : "Parcel does not exist with this tracking ID."
+          }
+        },
+        "x-ms-summary" : "Track a parcel"
+      }
+    },
+    "/parcel/{trackingId}/reportDelivery/" : {
+      "post" : {
+        "tags" : [ "parcel" ],
+        "summary" : "Report that a Parcel has been delivered at it's final destination address.\n",
+        "operationId" : "reportParcelDelivery",
+        "parameters" : [ {
+          "name" : "trackingId",
+          "in" : "path",
+          "description" : "The tracking ID of the parcel.\nE.g. PYJRB4HZ6\n",
+          "required" : true,
+          "type" : "string",
+          "pattern" : "^[A-Z0-9]{9}$",
+          "x-ms-summary" : "Tracking ID"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successfully reported hop."
+          },
+          "400" : {
+            "description" : "The operation failed due to an error.",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          },
+          "404" : {
+            "description" : "Parcel does not exist with this tracking ID.\n"
+          }
+        },
+        "x-ms-summary" : "Report Parcel delivery at final destination"
+      }
+    },
+    "/parcel/{trackingId}/reportHop/{code}" : {
+      "post" : {
+        "tags" : [ "parcel" ],
+        "summary" : "Report that a Parcel has arrived at a certain hop either Warehouse or Truck.",
+        "operationId" : "reportParcelHop",
+        "parameters" : [ {
+          "name" : "trackingId",
+          "in" : "path",
+          "description" : "The tracking ID of the parcel.\nE.g. PYJRB4HZ6\n",
+          "required" : true,
+          "type" : "string",
+          "pattern" : "^[A-Z0-9]{9}$",
+          "x-ms-summary" : "Tracking ID"
+        }, {
+          "name" : "code",
+          "in" : "path",
+          "description" : "The Code of the hop (warehouse or Truck).\n",
+          "required" : true,
+          "type" : "string",
+          "x-ms-summary" : "Code"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successfully reported hop."
+          },
+          "500" : {
+            "description" : "An error occured.",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/warehouse" : {
+      "get" : {
+        "tags" : [ "warehouse" ],
+        "summary" : "Exports the hierarchy of Warehouse and Truck objects.\n",
+        "operationId" : "exportWarehouses",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response",
+            "schema" : {
+              "$ref" : "#/definitions/warehouse"
+            }
+          },
+          "400" : {
+            "description" : "An error occurred loading.",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          },
+          "404" : {
+            "description" : "No hierarchy loaded yet."
+          }
+        },
+        "x-ms-summary" : "Export warehouse hierarchy."
+      },
+      "post" : {
+        "tags" : [ "warehouse" ],
+        "summary" : "Imports a hierarchy of Warehouse and Truck objects.\n",
+        "operationId" : "importWarehouses",
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "rootWarehouse",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/warehouse"
+          },
+          "x-ms-summary" : "Root Warehouse"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successfully loaded."
+          },
+          "400" : {
+            "description" : "The operation failed due to an error.",
+            "schema" : {
+              "$ref" : "#/definitions/error"
+            }
+          }
+        },
+        "x-ms-summary" : "Import Warehouses"
+      }
+    }
+  },
+  "definitions" : {
+    "parcel" : {
+      "type" : "object",
+      "required" : [ "receipient", "weight" ],
+      "properties" : {
+        "weight" : {
+          "type" : "number",
+          "format" : "float"
+        },
+        "receipient" : {
+          "$ref" : "#/definitions/receipient"
+        }
+      },
+      "example" : {
+        "weight" : 5.2,
+        "receipient" : {
+          "firstName" : "Tux L.-Oves",
+          "lastName" : "Azure",
+          "street" : "Am Europlatz 3",
+          "postalCode" : "A-1120",
+          "city" : "Wien"
+        }
+      }
+    },
+    "receipient" : {
+      "type" : "object",
+      "required" : [ "city", "firstName", "lastName", "postalCode", "street" ],
+      "properties" : {
+        "firstName" : {
+          "type" : "string"
+        },
+        "lastName" : {
+          "type" : "string"
+        },
+        "street" : {
+          "type" : "string"
+        },
+        "postalCode" : {
+          "type" : "string"
+        },
+        "city" : {
+          "type" : "string"
+        }
+      },
+      "example" : {
+        "firstName" : "Tux L.-Oves",
+        "lastName" : "Azure",
+        "street" : "Am Europlatz 3",
+        "postalCode" : "A-1120",
+        "city" : "Wien"
+      }
+    },
+    "warehouse" : {
+      "type" : "object",
+      "required" : [ "code", "description", "duration" ],
+      "properties" : {
+        "code" : {
+          "type" : "string",
+          "pattern" : "^[A-Z]{3}\\d{1,2}$"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "duration" : {
+          "type" : "number"
+        },
+        "nextHops" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/warehouse"
+          }
+        },
+        "trucks" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/truck"
+          }
+        }
+      },
+      "example" : {
+        "code" : "FRA01",
+        "description" : "Main Warehouse Germany",
+        "duration" : 10,
+        "nextHops" : [ {
+          "code" : "FRA02",
+          "description" : "Regional Warehouse Frankfurt",
+          "duration" : 5,
+          "nextHops" : [ {
+            "code" : "BER01",
+            "description" : "Warehouse Berlin",
+            "duration" : 22,
+            "nextHops" : [ {
+              "code" : "VIE01",
+              "description" : "Warehouse Wien",
+              "duration" : 25,
+              "nextHops" : [ ],
+              "trucks" : [ {
+                "code" : "VIE-T12345",
+                "numberPlate" : "W-123123",
+                "latitude" : 12,
+                "longitude" : 12,
+                "radius" : 12,
+                "duration" : 5
+              } ]
+            } ],
+            "trucks" : [ {
+              "code" : "BER-T12345",
+              "numberPlate" : "M-123123",
+              "latitude" : 12,
+              "longitude" : 12,
+              "radius" : 12,
+              "duration" : 5
+            }, {
+              "code" : "BER-T11111",
+              "numberPlate" : "M-456456",
+              "latitude" : 13,
+              "longitude" : 13,
+              "radius" : 5,
+              "duration" : 10
+            } ]
+          } ],
+          "trucks" : [ ]
+        } ],
+        "trucks" : [ ]
+      }
+    },
+    "error" : {
+      "required" : [ "errorMessage" ],
+      "properties" : {
+        "errorMessage" : {
+          "type" : "string",
+          "description" : "The error message."
+        }
+      }
+    },
+    "newParcelInfo" : {
+      "properties" : {
+        "trackingId" : {
+          "type" : "string",
+          "example" : "PYJRB4HZ6",
+          "description" : "The tracking ID of the parcel.\n",
+          "pattern" : "^[A-Z0-9]{9}$"
+        }
+      },
+      "example" : {
+        "trackingId" : "PYJRB4HZ6"
+      }
+    },
+    "truck" : {
+      "type" : "object",
+      "required" : [ "code", "duration", "latitude", "longitude", "numberPlate", "radius" ],
+      "properties" : {
+        "code" : {
+          "type" : "string",
+          "pattern" : "^[A-Z]{3}\\-T\\d{5}$"
+        },
+        "numberPlate" : {
+          "type" : "string"
+        },
+        "latitude" : {
+          "type" : "number"
+        },
+        "longitude" : {
+          "type" : "number"
+        },
+        "radius" : {
+          "type" : "number"
+        },
+        "duration" : {
+          "type" : "number"
+        }
+      }
+    },
+    "hopArrival" : {
+      "type" : "object",
+      "required" : [ "code", "dateTime" ],
+      "properties" : {
+        "code" : {
+          "type" : "string",
+          "description" : "The code of the warehouse or truck.",
+          "pattern" : "^[A-Z]{3}((\\-T\\d{5})|(\\d{2}))$"
+        },
+        "dateTime" : {
+          "type" : "string",
+          "format" : "date-time",
+          "description" : "The date/time the parcel arrived at the hop."
+        }
+      }
+    },
+    "trackingInformation" : {
+      "type" : "object",
+      "required" : [ "futureHops", "state", "visitedHops" ],
+      "properties" : {
+        "state" : {
+          "type" : "string",
+          "description" : "State of the parcel.",
+          "enum" : [ "InTransport", "InTruckDelivery", "Delivered" ]
+        },
+        "visitedHops" : {
+          "type" : "array",
+          "description" : "Hops visited in the past - either warehouse or truck.",
+          "items" : {
+            "$ref" : "#/definitions/hopArrival"
+          }
+        },
+        "futureHops" : {
+          "type" : "array",
+          "description" : "Hops coming up in the future - their times are estimations.",
+          "items" : {
+            "$ref" : "#/definitions/hopArrival"
+          }
+        }
+      },
+      "example" : {
+        "state" : "InTransport",
+        "visitedHops" : [ {
+          "code" : "VIE01",
+          "dateTime" : "2016-10-25T07:44:00.00Z"
+        }, {
+          "code" : "FRA02",
+          "dateTime" : "2016-10-25T09:20:00.00Z"
+        } ],
+        "futureHops" : [ {
+          "code" : "BER01",
+          "dateTime" : "2016-10-25T16:00:00.00Z"
+        }, {
+          "code" : "BER-T12345",
+          "dateTime" : "2016-10-25T18:00:00.00Z"
+        } ]
+      }
+    }
+  },
+  "responses" : {
+    "400" : {
+      "description" : "The operation failed due to an error.",
+      "schema" : {
+        "$ref" : "#/definitions/error"
+      }
+    },
+    "500" : {
+      "description" : "An error occured.",
+      "schema" : {
+        "$ref" : "#/definitions/error"
+      }
+    },
+    "parcelTrackingId" : {
+      "description" : "Successfully submitted the new parcel",
+      "schema" : {
+        "$ref" : "#/definitions/newParcelInfo"
+      }
+    }
+  }
+}
